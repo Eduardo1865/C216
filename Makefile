@@ -1,19 +1,19 @@
 .PHONY: install test lint format run help build up down logs clean
 
-PYTEST := poetry run pytest
-UVICORN := poetry run uvicorn
+PYTEST := poetry -C backend run pytest
+UVICORN := poetry -C backend run uvicorn
 
 install:
-	poetry install
+	poetry -C backend install
 
 test:
 	$(PYTEST)
 
 lint:
-	poetry run ruff check .
+	poetry -C backend run ruff check .
 
 format:
-	poetry run ruff format .
+	poetry -C backend run ruff format .
 
 run:
 	$(UVICORN) app.main:app --reload
