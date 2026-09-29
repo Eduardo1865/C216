@@ -19,6 +19,15 @@ poetry install
 poetry run pytest
 ```
 
+## API de CPF
+
+- `GET /cpf/validate?cpf=...` valida um CPF por query parameter.
+- `POST /cpf/validate` valida um CPF enviado como `{"cpf": "..."}`.
+- `GET /cpf/generate` ou `POST /cpf` gera um CPF válido.
+- `PUT /cpf/format` formata um CPF enviado no corpo da requisição.
+- `PATCH /cpf/validate` valida um CPF enviado no corpo da requisição.
+- `DELETE /cpf/{cpf}` remove um CPF gerado durante a execução.
+
 ## GitHub Actions
 
 O workflow `.github/workflows/ci-backend.yml` instala o Python 3.13 e as dependências do backend com Poetry, e executa o Pytest automaticamente em:
