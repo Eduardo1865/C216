@@ -19,6 +19,26 @@ poetry install
 poetry run pytest
 ```
 
+## Banco de dados
+
+O `docker-compose.yml` inicia o PostgreSQL e configura a aplicação com a
+variável `DATABASE_URL`. Ao iniciar o backend pelo Compose, as migrações
+Alembic são aplicadas automaticamente. Para executar uma migração manualmente:
+
+```bash
+make up
+make migrate
+```
+
+A API de usuários usa SQLAlchemy, um repository para acesso aos dados e o
+serviço expõe o CRUD persistido em PostgreSQL:
+
+- `POST /users` cria um usuário com `name` e `email`.
+- `GET /users` lista os usuários.
+- `GET /users/{id}` consulta um usuário.
+- `PUT /users/{id}` atualiza `name` e/ou `email`.
+- `DELETE /users/{id}` remove um usuário.
+
 ## API de CPF
 
 - `GET /cpf/validate?cpf=...` valida um CPF por query parameter.
