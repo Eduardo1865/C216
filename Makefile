@@ -1,4 +1,4 @@
-.PHONY: install test lint format run help build up down logs clean
+.PHONY: install test lint format run migrate help build up down logs clean
 
 PYTEST := poetry -C backend run pytest
 UVICORN := poetry -C backend run uvicorn
@@ -17,6 +17,9 @@ format:
 
 run:
 	$(UVICORN) app.main:app --reload
+
+migrate:
+	poetry -C backend run alembic upgrade head
 
 build:
 	docker-compose build
