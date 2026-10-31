@@ -2,7 +2,57 @@
 
 Repositório para a matéria C216.
 
-## Testes
+## Pré-requisitos
+
+- Python com Poetry instalado.
+- Node.js e npm instalados.
+- Docker e Docker Compose, caso queira executar o banco e os serviços.
+
+## Instalação
+
+Para instalar as dependências do backend e do frontend:
+
+```bash
+make install
+make frontend-install
+```
+
+O frontend é uma aplicação React com Vite, Tailwind CSS v4 e Biome. Ele
+funciona de forma independente e, atualmente, usa apenas dados gerados
+localmente, sem chamadas ao backend.
+
+## Frontend
+
+Para iniciar a interface em modo de desenvolvimento:
+
+```bash
+make frontend-dev
+```
+
+Geradores disponíveis:
+
+- CPF válido formatado.
+- E-mail fictício.
+- Nome brasileiro.
+- Pessoa completa com nome, CPF, e-mail, telefone e endereço.
+
+A interface também possui cópia do resultado, histórico local e layout
+responsivo. Os dados não são enviados para nenhum servidor.
+
+## Testes e qualidade
+
+Com as dependências instaladas, execute os comandos abaixo:
+
+```bash
+make frontend-check
+make frontend-test
+make frontend-build
+make frontend-e2e
+```
+
+O comando `make check-all` executa as validações do frontend e do backend.
+
+## Testes do backend
 
 Com o Poetry instalado, execute na raiz do projeto:
 
