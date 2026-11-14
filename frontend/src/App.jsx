@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GeneratorCard from "./components/GeneratorCard";
 import HistoryList from "./components/HistoryList";
 import ResultCard from "./components/ResultCard";
@@ -8,6 +8,7 @@ import {
   generateFullPerson,
   generateName,
 } from "./generator";
+import { createPerson, listPeople } from "./services/people";
 
 const generators = [
   {
@@ -44,10 +45,56 @@ const generators = [
   },
 ];
 
+function loadHistory() {
+  const storedHistory = localStorage.getItem("generator-history");
+  if (!storedHistory) return [];
+
+  try {
+    return JSON.parse(storedHistory);
+  } catch {
+    localStorage.removeItem("generator-history");
+    return [];
+  }
+}
+
 function App() {
   const [result, setResult] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState("geradores");
+  const [history, setHistory] = useState(loadHistory);
+  const [activeTab, setActiveTab] = useState(
+    () => localStorage.getItem("generator-active-tab") || "geradores",
+  );
+  const [people, setPeople] = useState([]);
+  const [peopleLoading, setPeopleLoading] = useState(true);
+  const [peopleError, setPeopleError] = useState("");
+  const [savingPerson, setSavingPerson] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+  const [saveError, setSaveError] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem("generator-history", JSON.stringify(history));
+  }, [history]);
+
+  useEffect(() => {
+    localStorage.setItem("generator-active-tab", activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    let active = true;
+    listPeople()
+      .then((loadedPeople) => {
+        if (active) setPeople(loadedPeople);
+      })
+      .catch((error) => {
+        if (active) setPeopleError(error.message);
+      })
+      .finally(() => {
+        if (active) setPeopleLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function handleGenerate(generator) {
     const generated = generator.generate();
@@ -60,6 +107,23 @@ function App() {
 
     setResult(entry);
     setHistory((current) => [entry, ...current].slice(0, 8));
+    setSaveMessage("");
+    setSaveError("");
+  }
+
+  async function handleSavePerson(person) {
+    setSavingPerson(true);
+    setSaveMessage("");
+    setSaveError("");
+    try {
+      const savedPerson = await createPerson(person);
+      setPeople((current) => [savedPerson, ...current]);
+      setSaveMessage("Pessoa cadastrada com sucesso.");
+    } catch (error) {
+      setSaveError(error.message);
+    } finally {
+      setSavingPerson(false);
+    }
   }
 
   function handleClearHistory() {
@@ -133,7 +197,48 @@ function App() {
                 />
               ))}
             </section>
-            <ResultCard result={result} />
+            <ResultCard
+              result={result}
+              onSave={handleSavePerson}
+              saving={savingPerson}
+              saveMessage={saveMessage}
+              saveError={saveError}
+            />
+            <section
+              className="people-section"
+              aria-label="Pessoas cadastradas"
+            >
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">Persistência na API</p>
+                  <h2>Pessoas cadastradas</h2>
+                </div>
+                <span className="people-count">{people.length}</span>
+              </div>
+              {peopleLoading && (
+                <p className="loading-message">Carregando pessoas...</p>
+              )}
+              {peopleError && (
+                <p className="error-message" role="alert">
+                  {peopleError}
+                </p>
+              )}
+              {!peopleLoading && !peopleError && people.length === 0 && (
+                <p className="empty-state">Nenhuma pessoa cadastrada ainda.</p>
+              )}
+              {!peopleLoading && people.length > 0 && (
+                <ul className="people-list">
+                  {people.map((person) => (
+                    <li key={person.id}>
+                      <strong>{person.nome}</strong>
+                      <span>
+                        {person.email} · {person.cpf}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           </>
         ) : (
           <HistoryList
@@ -144,8 +249,8 @@ function App() {
         )}
 
         <p className="privacy-note">
-          <span>♢</span> Todos os dados são gerados localmente e não são
-          enviados para nenhum servidor.
+          <span>♢</span> Os dados são gerados localmente; pessoas cadastradas
+          são persistidas pela API para seus testes.
         </p>
       </main>
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function ResultCard({ result }) {
+function ResultCard({ result, onSave, saving, saveMessage, saveError }) {
   const [copied, setCopied] = useState(false);
 
   if (!result) {
@@ -50,6 +50,24 @@ function ResultCard({ result }) {
             </div>
           ))}
         </dl>
+      )}
+      {result.type === "person" && (
+        <div className="save-person">
+          <button
+            type="button"
+            className="save-button"
+            onClick={() => onSave(result.value)}
+            disabled={saving}
+          >
+            {saving ? "Cadastrando..." : "Cadastrar pessoa"}
+          </button>
+          {saveMessage && <p className="success-message">{saveMessage}</p>}
+          {saveError && (
+            <p className="error-message" role="alert">
+              {saveError}
+            </p>
+          )}
+        </div>
       )}
     </section>
   );

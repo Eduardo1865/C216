@@ -8,12 +8,36 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql+psycopg://admin:admin@db:5432/c216
+      CORS_ORIGINS: http://localhost:5173
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ./backend:/app
     command: sh -c "poetry run alembic upgrade head && poetry run uvicorn app.main:app --host 0.0.0.0 --reload"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: c216-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   db:
     image: postgres:16-alpine

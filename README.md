@@ -17,9 +17,9 @@ make install
 make frontend-install
 ```
 
-O frontend é uma aplicação React com Vite, Tailwind CSS v4 e Biome. Ele
-funciona de forma independente e, atualmente, usa apenas dados gerados
-localmente, sem chamadas ao backend.
+O frontend é uma aplicação React com Vite, Tailwind CSS v4 e Biome. Os dados
+podem ser gerados localmente e pessoas completas podem ser cadastradas na API
+para persistência no PostgreSQL.
 
 ## Frontend
 
@@ -37,7 +37,8 @@ Geradores disponíveis:
 - Pessoa completa com nome, CPF, e-mail, telefone e endereço.
 
 A interface também possui cópia do resultado, histórico local e layout
-responsivo. Os dados não são enviados para nenhum servidor.
+responsivo. O botão **Cadastrar pessoa** persiste o resultado de Pessoa
+completa em `POST /people`, e a lista é carregada por `GET /people`.
 
 ## Testes e qualidade
 
@@ -50,7 +51,25 @@ make frontend-build
 make frontend-e2e
 ```
 
-O comando `make check-all` executa as validações do frontend e do backend.
+O comando `make check-all` executa todas as verificações: lint e build do
+frontend, testes unitários/de integração, testes E2E e testes/lint do backend.
+
+Para validar a stack completa com Docker:
+
+```bash
+make up-build
+make ps
+make db-upgrade
+```
+
+Após os containers ficarem saudáveis:
+
+- Swagger da API: http://localhost:8000/docs
+- Interface: http://localhost:5173
+- API de pessoas: `GET /people` e `POST /people`
+
+O backend aceita a variável `CORS_ORIGINS` como uma lista de origens separadas
+por vírgula. O Compose usa `http://localhost:5173`.
 
 ## Testes do backend
 

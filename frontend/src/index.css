@@ -332,6 +332,74 @@ h1 span {
   font-weight: 800;
   letter-spacing: 0.04em;
 }
+.save-person {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+.save-button {
+  padding: 0.7rem 0.9rem;
+  color: white;
+  background: #7956ed;
+  border: 0;
+  border-radius: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.save-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.success-message,
+.error-message,
+.loading-message,
+.empty-state {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+}
+.success-message {
+  color: #26865b;
+}
+.error-message {
+  color: #bb3d59;
+}
+.people-section {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgb(255 255 255 / 75%);
+  border: 1px solid #e8e3f4;
+  border-radius: 1rem;
+}
+.people-count {
+  display: grid;
+  min-width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  color: #7956ed;
+  background: #eee9ff;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.people-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.people-list li {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem;
+  background: #f8f6ff;
+  border-radius: 0.5rem;
+}
+.people-list span {
+  color: #7d748b;
+  font-size: 0.78rem;
+}
 .person-result {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

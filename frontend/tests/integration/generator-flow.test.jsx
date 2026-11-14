@@ -23,5 +23,8 @@ describe("generator flow integration", () => {
     expect(screen.getByText("nome")).toBeInTheDocument();
     expect(screen.getByText("telefone")).toBeInTheDocument();
     expect(screen.getByText("endereco")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Cadastrar pessoa" }),
+    ).toBeInTheDocument();
   });
 });
