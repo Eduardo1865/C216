@@ -13,11 +13,23 @@ frontend-install:
 frontend-run:
 	npm run dev --prefix frontend
 
+db-run:
+	docker compose up -d db
 
+create-tables:
+	poetry -C backend run alembic revision --autogenerate -m "create all tables"
 
+migrate:
+	poetry -C backend run alembic upgrade head
 
 db-upgrade:
 	docker-compose exec backend poetry run alembic upgrade head
+
+ps:
+	docker-compose ps
+
+view-tables:
+	docker compose exec db psql -U admin -d c216-projeto-final -c "\dt"
 
 build:
 	docker-compose build

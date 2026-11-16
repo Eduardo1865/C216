@@ -8,7 +8,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+psycopg://admin:admin@db:5432/c216
+      DATABASE_URL: postgresql+psycopg://admin:admin@db:5432/c216-projeto-final
       CORS_ORIGINS: http://localhost:5173
     depends_on:
       db:
@@ -43,7 +43,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d c216"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d c216-projeto-final"]
       interval: 10s
       timeout: 5s
       retries: 5
