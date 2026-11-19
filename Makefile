@@ -46,6 +46,9 @@ down:
 logs:
 	docker-compose logs -f backend
 
+clean-db:
+	docker compose exec db psql -U admin -d c216-projeto-final -c "TRUNCATE TABLE produto RESTART IDENTITY;"
+
 clean:
 	docker-compose down -v
 	find . -type d -name __pycache__ -exec rm -rf {} +

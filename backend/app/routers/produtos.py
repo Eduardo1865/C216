@@ -19,7 +19,12 @@ def criar_produto(
 ) -> Produto:
     produto = Produto(
         nome=produto_data.nome,
-        data=produto_data.data,
+        lote=produto_data.lote,
+        dataFabricacao=produto_data.dataFabricacao,
+        dataValidade=produto_data.dataValidade,
+        preco=produto_data.preco,
+        estoqueAtual=produto_data.estoqueAtual,
+        foto=produto_data.foto,
     )
 
     db.add(produto)
