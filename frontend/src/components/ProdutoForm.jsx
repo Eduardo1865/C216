@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function ProdutoForm({ aoCadastrar }) {
+export default function ProdutoForm({ aoCadastrar, aoFechar }) {
 	const [nome, setNome] = useState("");
 	const [lote, setLote] = useState("");
 	const [dataFabricacao, setDataFabricacao] = useState("");
@@ -9,6 +9,17 @@ export default function ProdutoForm({ aoCadastrar }) {
 	const [estoqueAtual, setEstoqueAtual] = useState("");
 	const [foto, setFoto] = useState("");
 	const [erro, setErro] = useState("");
+
+	useEffect(() => {
+		function fecharComEscape(event) {
+			if (event.key === "Escape") {
+				aoFechar();
+			}
+		}
+
+		document.addEventListener("keydown", fecharComEscape);
+		return () => document.removeEventListener("keydown", fecharComEscape);
+	}, [aoFechar]);
 
 	function selecionarFoto(event) {
 		const arquivo = event.target.files?.[0];
@@ -70,6 +81,7 @@ export default function ProdutoForm({ aoCadastrar }) {
 			setEstoqueAtual("");
 			setFoto("");
 			event.target.reset();
+			aoFechar();
 		} catch (error) {
 			console.error(error);
 			setErro(error.message);
@@ -77,15 +89,37 @@ export default function ProdutoForm({ aoCadastrar }) {
 	}
 
 	return (
-		<form
-			onSubmit={cadastrarProduto}
-			className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-		>
-			<h2 className="mb-6 text-xl font-semibold text-slate-800">
-				Cadastrar produto
-			</h2>
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+			<button
+				type="button"
+				onClick={aoFechar}
+				aria-label="Fechar modal"
+				className="absolute inset-0 cursor-pointer bg-slate-950/70"
+			/>
+			<div
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="cadastro-produto-title"
+				className="relative z-10 max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl"
+			>
+				<div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+					<h2
+						id="cadastro-produto-title"
+						className="text-xl font-semibold text-slate-800"
+					>
+						Cadastrar produto
+					</h2>
+					<button
+						type="button"
+						onClick={aoFechar}
+						className="cursor-pointer rounded-lg px-3 py-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+					>
+						Fechar
+					</button>
+				</div>
 
-			<div className="grid gap-4 md:grid-cols-2">
+				<form onSubmit={cadastrarProduto} className="p-6">
+					<div className="grid gap-4 md:grid-cols-2">
 				<div>
 					<label
 						htmlFor="nome"
@@ -215,20 +249,31 @@ export default function ProdutoForm({ aoCadastrar }) {
 						/>
 					)}
 				</div>
+					</div>
+
+					{erro && (
+						<p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+							{erro}
+						</p>
+					)}
+
+					<div className="mt-6 flex gap-3">
+						<button
+							type="submit"
+							className="cursor-pointer rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.98]"
+						>
+							Cadastrar
+						</button>
+						<button
+							type="button"
+							onClick={aoFechar}
+							className="cursor-pointer rounded-lg border border-slate-300 px-5 py-2.5 font-medium text-slate-700 transition hover:bg-slate-50"
+						>
+							Cancelar
+						</button>
+					</div>
+				</form>
 			</div>
-
-			{erro && (
-				<p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-					{erro}
-				</p>
-			)}
-
-			<button
-				type="submit"
-				className="mt-6 cursor-pointer rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.98]"
-			>
-				Cadastrar
-			</button>
-		</form>
+		</div>
 	);
 }

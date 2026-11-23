@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { dataValidadeVencida } from "../utils/produtoUtils";
 
 export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 	const [editando, setEditando] = useState(false);
@@ -110,6 +111,7 @@ export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 		],
 		["Estoque atual", formulario.estoqueAtual],
 	];
+	const vencido = dataValidadeVencida(formulario.dataValidade);
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -275,6 +277,15 @@ export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 							<p className="mb-5 text-lg font-semibold text-slate-800">
 								{produto.nome}
 							</p>
+
+							{vencido && (
+								<div
+									role="alert"
+									className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+								>
+									Produto com validade vencida
+								</div>
+							)}
 
 							<div className="grid gap-4 sm:grid-cols-2">
 								{campos.map(([rotulo, valor]) => (
