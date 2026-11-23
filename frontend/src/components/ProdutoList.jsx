@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import ProdutoModal from "./ProdutoModal";
 import { dataValidadeVencida } from "../utils/produtoUtils";
+import { apiUrl } from "../config/api";
 
 export default function ProdutoList({ atualizacao, aoAtualizar }) {
 	const [produtos, setProdutos] = useState([]);
@@ -11,7 +12,7 @@ export default function ProdutoList({ atualizacao, aoAtualizar }) {
 		async function carregarProdutos() {
 			try {
 				const response = await fetch(
-					`http://localhost:8000/produtos/?atualizacao=${atualizacao}`,
+					apiUrl(`/produtos/?atualizacao=${atualizacao}`),
 				);
 
 				if (!response.ok) {

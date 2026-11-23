@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../config/api";
 
 export default function ProdutoForm({ aoCadastrar, aoFechar }) {
 	const [nome, setNome] = useState("");
@@ -58,7 +59,7 @@ export default function ProdutoForm({ aoCadastrar, aoFechar }) {
 		};
 
 		try {
-			const response = await fetch("http://localhost:8000/produtos/", {
+			const response = await fetch(apiUrl("/produtos/"), {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

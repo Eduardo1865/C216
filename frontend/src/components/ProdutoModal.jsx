@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { dataValidadeVencida } from "../utils/produtoUtils";
+import { apiUrl } from "../config/api";
 
 export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 	const [editando, setEditando] = useState(false);
@@ -51,7 +52,7 @@ export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 
 		try {
 			const response = await fetch(
-				`http://localhost:8000/produtos/${produto.id}`,
+				apiUrl(`/produtos/${produto.id}`),
 				{
 					method: "PUT",
 					headers: { "Content-Type": "application/json" },
@@ -83,7 +84,7 @@ export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 
 		try {
 			const response = await fetch(
-				`http://localhost:8000/produtos/${produto.id}`,
+				apiUrl(`/produtos/${produto.id}`),
 				{ method: "DELETE" },
 			);
 

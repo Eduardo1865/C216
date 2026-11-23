@@ -1,9 +1,11 @@
 from datetime import date
 
 from sqlalchemy import Date, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
+
+from app.models.produto_tag import produto_tag
 
 class Produto(Base):
     __tablename__ = "produto"
@@ -16,3 +18,8 @@ class Produto(Base):
     preco:Mapped[float] = mapped_column(nullable=False)
     estoqueAtual:Mapped [int] = mapped_column(nullable=False)
     foto: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tags: Mapped[list["Tag"]] = relationship(
+        "Tag",
+        secondary=produto_tag,
+        back_populates="produtos"
+    )
