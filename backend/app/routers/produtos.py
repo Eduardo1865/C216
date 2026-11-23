@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -44,3 +44,49 @@ def listar_produtos(
     resultado = db.scalars(query).all()
 
     return list(resultado)
+
+@router.put(
+    "/{produto_id}",
+    response_model=ProdutoResponse,
+)
+def editar_produto(
+    produto_id: int,
+    produto_data: ProdutoCreate,
+    db: Session = Depends(get_db),
+) -> Produto:
+    produto = db.get(Produto, produto_id)
+    if produto is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Produto não encontrado.",
+        )
+
+    produto.nome = produto_data.nome
+    produto.lote = produto_data.lote
+    produto.dataFabricacao = produto_data.dataFabricacao
+    produto.dataValidade = produto_data.dataValidade
+    produto.preco = produto_data.preco
+    produto.estoqueAtual = produto_data.estoqueAtual
+    produto.foto = produto_data.foto
+
+    db.commit()
+    db.refresh(produto)
+    return produto
+
+@router.delete(
+    "/{produto_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def excluir_produto(
+    produto_id: int,
+    db: Session = Depends(get_db),
+) -> None:
+    produto = db.get(Produto, produto_id)
+    if produto is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Produto não encontrado.",
+        )
+
+    db.delete(produto)
+    db.commit()

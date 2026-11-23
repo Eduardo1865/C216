@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import ProdutoModal from "./ProdutoModal";
 
-export default function ProdutoList({ atualizacao }) {
+export default function ProdutoList({ atualizacao, aoAtualizar }) {
 	const [produtos, setProdutos] = useState([]);
+	const [produtoSelecionado, setProdutoSelecionado] = useState(null);
 
 	useEffect(() => {
 		async function carregarProdutos() {
@@ -75,7 +77,11 @@ export default function ProdutoList({ atualizacao }) {
 
 						<tbody className="divide-y divide-slate-100">
 							{produtos.map((produto) => (
-								<tr key={produto.id} className="transition hover:bg-slate-50">
+								<tr
+									key={produto.id}
+									onClick={() => setProdutoSelecionado(produto)}
+									className="cursor-pointer transition hover:bg-slate-50"
+								>
 									<td className="px-6 py-4 text-sm text-slate-500">
 										{produto.id}
 									</td>
@@ -123,6 +129,14 @@ export default function ProdutoList({ atualizacao }) {
 						</tbody>
 					</table>
 				</div>
+			)}
+
+			{produtoSelecionado && (
+				<ProdutoModal
+					produto={produtoSelecionado}
+					aoFechar={() => setProdutoSelecionado(null)}
+					aoAtualizar={aoAtualizar}
+				/>
 			)}
 		</section>
 	);
