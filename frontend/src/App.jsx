@@ -1,18 +1,20 @@
 import { useState } from "react";
 import ProdutoForm from "./components/ProdutoForm";
 import ProdutoList from "./components/ProdutoList";
+import TagSidebar from "./components/TagSidebar";
 
 export default function App() {
 	const [atualizacao, setAtualizacao] = useState(0);
 	const [cadastroAberto, setCadastroAberto] = useState(false);
+	const [tagSelecionada, setTagSelecionada] = useState(null);
 
 	function atualizarLista() {
 		setAtualizacao((valorAtual) => valorAtual + 1);
 	}
 
 	return (
-		<main className="min-h-screen bg-slate-100 px-4 py-10">
-			<div className="mx-auto max-w-5xl space-y-6">
+		<main className="min-h-screen bg-slate-100 px-4 py-8 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-[1600px] space-y-6">
 				<div className="flex justify-end">
 					<button
 						type="button"
@@ -29,7 +31,18 @@ export default function App() {
 						aoFechar={() => setCadastroAberto(false)}
 					/>
 				)}
-				<ProdutoList atualizacao={atualizacao} aoAtualizar={atualizarLista} />
+				<div className="grid items-start gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+					<TagSidebar
+						tagSelecionada={tagSelecionada}
+						aoSelecionarTag={setTagSelecionada}
+						atualizacao={atualizacao}
+					/>
+					<ProdutoList
+						atualizacao={atualizacao}
+						aoAtualizar={atualizarLista}
+						tagSelecionada={tagSelecionada}
+					/>
+				</div>
 			</div>
 		</main>
 	);

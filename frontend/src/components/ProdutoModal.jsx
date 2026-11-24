@@ -1,17 +1,34 @@
 import { useEffect, useState } from "react";
-import { dataValidadeVencida } from "../utils/produtoUtils";
 import { apiUrl } from "../config/api";
+import { dataValidadeVencida } from "../utils/produtoUtils";
 
 export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 	const [editando, setEditando] = useState(false);
 	const [erro, setErro] = useState("");
 	const [formulario, setFormulario] = useState(produto);
+	const [tagsDisponiveis, setTagsDisponiveis] = useState([]);
 
 	useEffect(() => {
 		setFormulario(produto);
 		setEditando(false);
 		setErro("");
 	}, [produto]);
+
+	useEffect(() => {
+		async function carregarTags() {
+			try {
+				const response = await fetch(apiUrl("/tags/"));
+				if (!response.ok) {
+					throw new Error("Não foi possível buscar as tags.");
+				}
+				setTagsDisponiveis(await response.json());
+			} catch (error) {
+				setErro(error.message);
+			}
+		}
+
+		carregarTags();
+	}, []);
 
 	useEffect(() => {
 		function fecharComEscape(event) {
@@ -27,6 +44,19 @@ export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 	function atualizarCampo(event) {
 		const { name, value } = event.target;
 		setFormulario((dados) => ({ ...dados, [name]: value }));
+	}
+
+	function alternarTag(tagId) {
+		setFormulario((dados) => {
+			const idsAtuais = (dados.tags ?? []).map((tag) => tag.id);
+			const novosIds = idsAtuais.includes(tagId)
+				? idsAtuais.filter((id) => id !== tagId)
+				: [...idsAtuais, tagId];
+			const novasTags = tagsDisponiveis.filter((tag) =>
+				novosIds.includes(tag.id),
+			);
+			return { ...dados, tags: novasTags };
+		});
 	}
 
 	function selecionarFoto(event) {
@@ -51,22 +81,20 @@ export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 		setErro("");
 
 		try {
-			const response = await fetch(
-				apiUrl(`/produtos/${produto.id}`),
-				{
-					method: "PUT",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						nome: formulario.nome,
-						lote: formulario.lote,
-						dataFabricacao: formulario.dataFabricacao,
-						dataValidade: formulario.dataValidade,
-						preco: Number(formulario.preco),
-						estoqueAtual: Number(formulario.estoqueAtual),
-						foto: formulario.foto || null,
-					}),
-				},
-			);
+			const response = await fetch(apiUrl(`/produtos/${produto.id}`), {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					nome: formulario.nome,
+					lote: formulario.lote,
+					dataFabricacao: formulario.dataFabricacao,
+					dataValidade: formulario.dataValidade,
+					preco: Number(formulario.preco),
+					estoqueAtual: Number(formulario.estoqueAtual),
+					foto: formulario.foto || null,
+					tag_ids: (formulario.tags ?? []).map((tag) => tag.id),
+				}),
+			});
 
 			if (!response.ok) {
 				throw new Error("Não foi possível editar o produto.");
@@ -83,10 +111,9 @@ export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 		if (!window.confirm(`Excluir o produto "${produto.nome}"?`)) return;
 
 		try {
-			const response = await fetch(
-				apiUrl(`/produtos/${produto.id}`),
-				{ method: "DELETE" },
-			);
+			const response = await fetch(apiUrl(`/produtos/${produto.id}`), {
+				method: "DELETE",
+			});
 
 			if (!response.ok) {
 				throw new Error("Não foi possível excluir o produto.");
@@ -231,6 +258,37 @@ export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 									className="mt-2 block w-full rounded-lg border border-slate-300 text-sm text-slate-600 file:mr-4 file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:font-medium file:text-blue-700"
 								/>
 							</label>
+
+							<fieldset className="md:col-span-2">
+								<legend className="mb-2 text-sm font-medium text-slate-700">
+									Tags
+								</legend>
+								<div className="flex flex-wrap gap-2">
+									{tagsDisponiveis.map((tag) => {
+										const selecionada = (formulario.tags ?? []).some(
+											(item) => item.id === tag.id,
+										);
+										return (
+											<label
+												key={tag.id}
+												className={`cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200 ${
+													selecionada
+														? "bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md"
+														: "border border-blue-200 bg-blue-50 text-blue-700 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm"
+												}`}
+											>
+												<input
+													type="checkbox"
+													className="sr-only"
+													checked={selecionada}
+													onChange={() => alternarTag(tag.id)}
+												/>
+												{tag.nome}
+											</label>
+										);
+									})}
+								</div>
+							</fieldset>
 						</div>
 
 						{erro && (
@@ -278,6 +336,19 @@ export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 							<p className="mb-5 text-lg font-semibold text-slate-800">
 								{produto.nome}
 							</p>
+
+							{(produto.tags ?? []).length > 0 && (
+								<div className="mb-5 flex flex-wrap gap-1">
+									{produto.tags.map((tag) => (
+										<span
+											key={tag.id}
+											className="rounded-full bg-blue-600 px-2 py-1 text-xs font-semibold text-white"
+										>
+											{tag.nome}
+										</span>
+									))}
+								</div>
+							)}
 
 							{vencido && (
 								<div

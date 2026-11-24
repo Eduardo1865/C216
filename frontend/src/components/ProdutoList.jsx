@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import ProdutoModal from "./ProdutoModal";
-import { dataValidadeVencida } from "../utils/produtoUtils";
 import { apiUrl } from "../config/api";
+import { dataValidadeVencida } from "../utils/produtoUtils";
+import ProdutoModal from "./ProdutoModal";
 
-export default function ProdutoList({ atualizacao, aoAtualizar }) {
+export default function ProdutoList({
+	atualizacao,
+	aoAtualizar,
+	tagSelecionada,
+}) {
 	const [produtos, setProdutos] = useState([]);
 	const [produtoSelecionado, setProdutoSelecionado] = useState(null);
 	const [busca, setBusca] = useState("");
@@ -11,9 +15,10 @@ export default function ProdutoList({ atualizacao, aoAtualizar }) {
 	useEffect(() => {
 		async function carregarProdutos() {
 			try {
-				const response = await fetch(
-					apiUrl(`/produtos/?atualizacao=${atualizacao}`),
-				);
+				const caminho = tagSelecionada
+					? `/produtos/por-tag/${tagSelecionada.id}`
+					: `/produtos/?atualizacao=${atualizacao}`;
+				const response = await fetch(apiUrl(caminho));
 
 				if (!response.ok) {
 					throw new Error("Não foi possível buscar os produtos.");
@@ -27,7 +32,7 @@ export default function ProdutoList({ atualizacao, aoAtualizar }) {
 		}
 
 		carregarProdutos();
-	}, [atualizacao]);
+	}, [atualizacao, tagSelecionada]);
 
 	function normalizarTexto(texto) {
 		return String(texto ?? "")
@@ -46,9 +51,8 @@ export default function ProdutoList({ atualizacao, aoAtualizar }) {
 			produto.dataValidade,
 			produto.preco,
 			produto.estoqueAtual,
-		].some((valor) =>
-			normalizarTexto(valor).includes(termoBusca),
-		),
+			...(produto.tags ?? []).map((tag) => tag.nome),
+		].some((valor) => normalizarTexto(valor).includes(termoBusca)),
 	);
 
 	return (
@@ -92,38 +96,48 @@ export default function ProdutoList({ atualizacao, aoAtualizar }) {
 				</p>
 			) : (
 				<div className="overflow-x-auto">
-					<table className="w-full text-left">
+					<table className="w-full min-w-[900px] table-fixed text-left">
+						<colgroup>
+							<col className="w-[5%]" />
+							<col className="w-[18%]" />
+							<col className="w-[12%]" />
+							<col className="w-[13%]" />
+							<col className="w-[14%]" />
+							<col className="w-[13%]" />
+							<col className="w-[10%]" />
+							<col className="w-[15%]" />
+						</colgroup>
 						<thead className="bg-slate-50">
 							<tr>
-								<th className="px-6 py-3 text-sm font-semibold text-slate-600">
+								<th className="px-4 py-3 text-sm font-semibold text-slate-600">
 									ID
 								</th>
 
-								<th className="px-6 py-3 text-sm font-semibold text-slate-600">
+								<th className="px-4 py-3 text-sm font-semibold text-slate-600">
 									Nome
 								</th>
 
-								<th className="px-6 py-3 text-sm font-semibold text-slate-600">
+								<th className="px-4 py-3 text-sm font-semibold text-slate-600">
 									Lote
 								</th>
 
-								<th className="px-6 py-3 text-sm font-semibold text-slate-600">
+								<th className="px-4 py-3 text-sm font-semibold text-slate-600">
 									Fabricação
 								</th>
 
-								<th className="px-6 py-3 text-sm font-semibold text-slate-600">
+								<th className="px-4 py-3 text-sm font-semibold text-slate-600">
 									Validade
 								</th>
 
-								<th className="px-6 py-3 text-sm font-semibold text-slate-600">
+								<th className="px-4 py-3 text-sm font-semibold text-slate-600">
 									Preço
 								</th>
 
-								<th className="px-6 py-3 text-sm font-semibold text-slate-600">
+								<th className="px-4 py-3 text-sm font-semibold text-slate-600">
 									Estoque
 								</th>
 
-								<th className="px-6 py-3 text-sm font-semibold text-slate-600">
+								<th className="px-4 py-3 text-sm font-semibold text-slate-600">
 									Foto
 								</th>
 							</tr>
@@ -134,67 +148,85 @@ export default function ProdutoList({ atualizacao, aoAtualizar }) {
 								const vencido = dataValidadeVencida(produto.dataValidade);
 
 								return (
-								<tr
-									key={produto.id}
-									onClick={() => setProdutoSelecionado(produto)}
-									className={`cursor-pointer transition ${
-										vencido
-											? "bg-red-50 hover:bg-red-100"
-											: "hover:bg-slate-50"
-									}`}
-								>
-									<td className="px-6 py-4 text-sm text-slate-500">
-										{produto.id}
-									</td>
+									<tr
+										key={produto.id}
+										onClick={() => setProdutoSelecionado(produto)}
+										className={`cursor-pointer transition ${
+											vencido
+												? "bg-red-50 hover:bg-red-100"
+												: "hover:bg-slate-50"
+										}`}
+									>
+										<td className="px-4 py-5 text-sm text-slate-500">
+											{produto.id}
+										</td>
 
-									<td className="px-6 py-4 font-medium text-slate-800">
-										{produto.nome}
-									</td>
+										<td className="px-4 py-5 font-medium text-slate-800">
+											<div className="flex flex-col items-start gap-1">
+												<span>{produto.nome}</span>
+												{(produto.tags ?? []).length > 0 && (
+													<div className="flex flex-wrap gap-1">
+														{produto.tags.map((tag) => (
+															<span
+																key={tag.id}
+																className="rounded-full bg-blue-600 px-2 py-1 text-xs font-semibold text-white"
+															>
+																{tag.nome}
+															</span>
+														))}
+													</div>
+												)}
+											</div>
+										</td>
 
-									<td className="px-6 py-4 text-sm text-slate-600">
-										{produto.lote}
-									</td>
+										<td className="px-4 py-5 text-sm text-slate-600">
+											{produto.lote}
+										</td>
 
-									<td className="px-6 py-4 text-sm text-slate-600">
-										{produto.dataFabricacao}
-									</td>
+										<td className="px-4 py-5 text-sm text-slate-600">
+											{produto.dataFabricacao}
+										</td>
 
-									<td className="px-6 py-4 text-sm text-slate-600">
-										<div className="flex flex-col items-start gap-1">
-											<span className={vencido ? "font-semibold text-red-700" : ""}>
-												{produto.dataValidade}
-											</span>
-											{vencido && (
-												<span className="rounded-full bg-red-600 px-2 py-1 text-xs font-semibold text-white">
-													Validade vencida
+										<td className="px-4 py-5 text-sm text-slate-600">
+											<div className="flex flex-col items-start gap-1">
+												<span
+													className={
+														vencido ? "font-semibold text-red-700" : ""
+													}
+												>
+													{produto.dataValidade}
 												</span>
+												{vencido && (
+													<span className="rounded-full bg-red-600 px-2 py-1 text-xs font-semibold text-white">
+														Validade vencida
+													</span>
+												)}
+											</div>
+										</td>
+
+										<td className="px-4 py-5 text-sm text-slate-600">
+											{Number(produto.preco).toLocaleString("pt-BR", {
+												style: "currency",
+												currency: "BRL",
+											})}
+										</td>
+
+										<td className="px-4 py-5 text-sm text-slate-600">
+											{produto.estoqueAtual}
+										</td>
+
+										<td className="px-4 py-5">
+											{produto.foto ? (
+												<img
+													src={produto.foto}
+													alt={`Foto de ${produto.nome}`}
+													className="h-14 w-14 rounded-lg border border-slate-200 object-cover"
+												/>
+											) : (
+												<span className="text-sm text-slate-400">Sem foto</span>
 											)}
-										</div>
-									</td>
-
-									<td className="px-6 py-4 text-sm text-slate-600">
-										{Number(produto.preco).toLocaleString("pt-BR", {
-											style: "currency",
-											currency: "BRL",
-										})}
-									</td>
-
-									<td className="px-6 py-4 text-sm text-slate-600">
-										{produto.estoqueAtual}
-									</td>
-
-									<td className="px-6 py-4">
-										{produto.foto ? (
-											<img
-												src={produto.foto}
-												alt={`Foto de ${produto.nome}`}
-												className="h-14 w-14 rounded-lg border border-slate-200 object-cover"
-											/>
-										) : (
-											<span className="text-sm text-slate-400">Sem foto</span>
-										)}
-									</td>
-								</tr>
+										</td>
+									</tr>
 								);
 							})}
 						</tbody>

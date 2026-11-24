@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.routers.produtos import router as produtos_router
+from app.routers.tags import router as tags_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="C216 Projeto Final")
@@ -13,3 +14,4 @@ app.add_middleware(
 )
 
 app.include_router(produtos_router)
+app.include_router(tags_router)
