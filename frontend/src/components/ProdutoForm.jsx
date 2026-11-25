@@ -260,7 +260,7 @@ export default function ProdutoForm({ aoCadastrar, aoFechar }) {
 								htmlFor="foto"
 								className="mb-2 block text-sm font-medium text-slate-700"
 							>
-								Foto do produto
+								Foto do produto (opcional)
 							</label>
 							<input
 								id="foto"

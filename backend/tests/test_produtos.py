@@ -1,7 +1,10 @@
+import asyncio
 from datetime import date
+from io import BytesIO
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
+from openpyxl import Workbook
 from sqlalchemy.orm import Session
 
 from app.db.database import engine
@@ -11,6 +14,7 @@ from app.routers.produtos import (
     criar_produto,
     editar_produto,
     excluir_produto,
+    importar_produtos,
     listar_produtos,
 )
 from app.schemas.produto import ProdutoCreate
@@ -29,6 +33,30 @@ def produto_data(nome="Cafe", tag_ids=None):
     )
 
 
+def criar_planilha(linhas):
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.append(
+        [
+            "Nome",
+            "Lote",
+            "Data de fabricação",
+            "Data de validade",
+            "Preço",
+            "Estoque atual",
+            "Tags",
+            "Valor Total em Estoque",
+        ]
+    )
+    for linha in linhas:
+        worksheet.append(linha)
+
+    arquivo = BytesIO()
+    workbook.save(arquivo)
+    arquivo.seek(0)
+    return arquivo
+
+
 def test_criar_produto_com_todos_os_campos():
     with Session(engine) as db:
         produto = criar_produto(produto_data(), db)
@@ -42,6 +70,93 @@ def test_criar_produto_com_todos_os_campos():
         assert produto.estoqueAtual == 3
         assert produto.foto == "foto-teste"
         assert produto.tags == []
+
+
+def test_importar_produtos_da_planilha_cria_tags_e_deixa_foto_vazia():
+    with Session(engine) as db:
+        tag_existente = Tag(nome="Mercearia")
+        db.add(tag_existente)
+        db.commit()
+
+        arquivo = criar_planilha(
+            [
+                [
+                    "Arroz",
+                    "A1",
+                    date(2026, 1, 1),
+                    date(2027, 1, 1),
+                    5.49,
+                    20,
+                    "Mercearia; Grãos",
+                    109.8,
+                ],
+                [
+                    "Feijão",
+                    "F1",
+                    date(2026, 2, 1),
+                    date(2027, 2, 1),
+                    8.99,
+                    10,
+                    "Mercearia",
+                    89.9,
+                ],
+                ["TOTAL GERAL", None, None, None, None, None, None, None],
+            ]
+        )
+        resultado = asyncio.run(
+            importar_produtos(
+                UploadFile(filename="produtos.xlsx", file=arquivo),
+                db,
+            )
+        )
+
+        produtos = listar_produtos(db)
+
+        assert resultado == {"quantidade": 2}
+        assert [produto.nome for produto in produtos] == ["Arroz", "Feijão"]
+        assert all(produto.foto is None for produto in produtos)
+        assert {tag.nome for tag in produtos[0].tags} == {"Mercearia", "Grãos"}
+        assert {tag.nome for tag in produtos[1].tags} == {"Mercearia"}
+        assert db.query(Tag).count() == 2
+
+
+def test_importacao_invalida_nao_insere_produtos_parcialmente():
+    with Session(engine) as db:
+        arquivo = criar_planilha(
+            [
+                [
+                    "Arroz",
+                    "A1",
+                    date(2026, 1, 1),
+                    date(2027, 1, 1),
+                    5.49,
+                    20,
+                    "",
+                    109.8,
+                ],
+                [
+                    "",
+                    "F1",
+                    date(2026, 2, 1),
+                    date(2027, 2, 1),
+                    8.99,
+                    10,
+                    "",
+                    89.9,
+                ],
+            ]
+        )
+
+        with pytest.raises(HTTPException) as erro:
+            asyncio.run(
+                importar_produtos(
+                    UploadFile(filename="produtos.xlsx", file=arquivo),
+                    db,
+                )
+            )
+
+        assert erro.value.status_code == 422
+        assert listar_produtos(db) == []
 
 
 def test_criar_produto_com_multiplas_tags():

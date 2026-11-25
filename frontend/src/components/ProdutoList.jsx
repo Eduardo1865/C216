@@ -11,6 +11,9 @@ export default function ProdutoList({
 	const [produtos, setProdutos] = useState([]);
 	const [produtoSelecionado, setProdutoSelecionado] = useState(null);
 	const [busca, setBusca] = useState("");
+	const [somenteVencidos, setSomenteVencidos] = useState(false);
+	const [paginaAtual, setPaginaAtual] = useState(1);
+	const produtosPorPagina = 10;
 
 	useEffect(() => {
 		async function carregarProdutos() {
@@ -42,17 +45,26 @@ export default function ProdutoList({
 	}
 
 	const termoBusca = normalizarTexto(busca.trim());
-	const produtosFiltrados = produtos.filter((produto) =>
-		[
-			produto.id,
-			produto.nome,
-			produto.lote,
-			produto.dataFabricacao,
-			produto.dataValidade,
-			produto.preco,
-			produto.estoqueAtual,
-			...(produto.tags ?? []).map((tag) => tag.nome),
-		].some((valor) => normalizarTexto(valor).includes(termoBusca)),
+	const produtosFiltrados = produtos.filter(
+		(produto) =>
+			(!somenteVencidos || dataValidadeVencida(produto.dataValidade)) &&
+			[
+				produto.id,
+				produto.nome,
+				produto.lote,
+				produto.dataFabricacao,
+				produto.dataValidade,
+				produto.preco,
+				produto.estoqueAtual,
+				...(produto.tags ?? []).map((tag) => tag.nome),
+			].some((valor) => normalizarTexto(valor).includes(termoBusca)),
+	);
+	const totalPaginas = Math.ceil(produtosFiltrados.length / produtosPorPagina);
+	const paginaExibida = Math.min(paginaAtual, Math.max(totalPaginas, 1));
+	const indiceInicial = (paginaExibida - 1) * produtosPorPagina;
+	const produtosDaPagina = produtosFiltrados.slice(
+		indiceInicial,
+		indiceInicial + produtosPorPagina,
 	);
 
 	return (
@@ -70,20 +82,39 @@ export default function ProdutoList({
 						id="buscar-produto"
 						type="search"
 						value={busca}
-						onChange={(event) => setBusca(event.target.value)}
+						onChange={(event) => {
+							setBusca(event.target.value);
+							setPaginaAtual(1);
+						}}
 						placeholder="Pesquisar por nome, lote, data ou ID..."
 						className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
 					/>
 					{busca && (
 						<button
 							type="button"
-							onClick={() => setBusca("")}
+							onClick={() => {
+								setBusca("");
+								setPaginaAtual(1);
+							}}
 							className="cursor-pointer rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 transition hover:bg-slate-50"
 						>
 							Limpar
 						</button>
 					)}
 				</div>
+				<label className="mt-4 inline-flex w-fit cursor-pointer items-center gap-3 text-sm font-medium text-slate-700">
+					<input
+						type="checkbox"
+						checked={somenteVencidos}
+						onChange={(event) => {
+							setSomenteVencidos(event.target.checked);
+							setPaginaAtual(1);
+						}}
+						className="peer sr-only"
+					/>
+					<span className="relative h-6 w-11 rounded-full bg-slate-300 transition before:absolute before:top-0.5 before:left-0.5 before:h-5 before:w-5 before:rounded-full before:bg-white before:transition-transform peer-checked:bg-red-600 peer-checked:before:translate-x-5 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-red-600" />
+					Mostrar apenas produtos vencidos
+				</label>
 			</div>
 
 			{produtos.length === 0 ? (
@@ -144,7 +175,7 @@ export default function ProdutoList({
 						</thead>
 
 						<tbody className="divide-y divide-slate-100">
-							{produtosFiltrados.map((produto) => {
+							{produtosDaPagina.map((produto) => {
 								const vencido = dataValidadeVencida(produto.dataValidade);
 
 								return (
@@ -231,6 +262,45 @@ export default function ProdutoList({
 							})}
 						</tbody>
 					</table>
+				</div>
+			)}
+
+			{produtosFiltrados.length > 0 && (
+				<div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+					<p className="text-sm text-slate-600">
+						Mostrando {indiceInicial + 1}–
+						{Math.min(
+							indiceInicial + produtosPorPagina,
+							produtosFiltrados.length,
+						)}{" "}
+						de {produtosFiltrados.length} produtos
+					</p>
+					{totalPaginas > 1 && (
+						<nav
+							aria-label="Paginação dos produtos"
+							className="flex items-center gap-2"
+						>
+							<button
+								type="button"
+								onClick={() => setPaginaAtual(paginaExibida - 1)}
+								disabled={paginaExibida === 1}
+								className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								Anterior
+							</button>
+							<span className="px-2 text-sm text-slate-600">
+								Página {paginaExibida} de {totalPaginas}
+							</span>
+							<button
+								type="button"
+								onClick={() => setPaginaAtual(paginaExibida + 1)}
+								disabled={paginaExibida === totalPaginas}
+								className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								Próxima
+							</button>
+						</nav>
+					)}
 				</div>
 			)}
 

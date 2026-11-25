@@ -250,7 +250,7 @@ export default function ProdutoModal({ produto, aoFechar, aoAtualizar }) {
 							</label>
 
 							<label className="text-sm font-medium text-slate-700 md:col-span-2">
-								Foto do produto
+								Foto do produto (opcional)
 								<input
 									type="file"
 									accept="image/*"
